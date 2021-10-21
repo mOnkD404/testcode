@@ -48,8 +48,8 @@ struct PrintTable<std::index_sequence<N...>> {
 };
 
 void PrintInt(int c) {
-  constexpr int size = 999;
-  if (c > size)
+  constexpr int size = 1000;
+  if (c >= size)
     return;
 
   using Table = PrintTable<std::make_index_sequence<size>>;
