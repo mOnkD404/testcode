@@ -2,39 +2,48 @@
 #include <cmath>
 #include <iostream>
 
-template <int i>
-struct PrintTraitsHelper;
-
-template <>
-struct PrintTraitsHelper<0> {
-  enum { digits = 0 };
-  void Print() {}
+template <int... Is>
+struct DigitsVector {
+  using Type = DigitsVector<Is...>;
+  static void PrintDigitsString() { ((std::cout << Is << " "), ...); }
+  static void PrintDigitsCount() { std::cout << sizeof...(Is); }
 };
 
-template <int i>
-struct PrintTraitsHelper {
-  enum { value = i % 10 };
-  enum { digits = 1 + PrintTraitsHelper<i / 10>::digits };
-  void Print() {
-    std::cout << value << " ";
-    PrintTraitsHelper<i / 10>{}.Print();
-  }
-};
+template <int IntVal, typename = DigitsVector<>>
+struct DigitTraitsHelper;
+
+template <int IntVal, int... Is>
+struct DigitTraitsHelper<IntVal, DigitsVector<Is...>>
+    : DigitTraitsHelper<IntVal / 10, DigitsVector<IntVal % 10, Is...>> {};
+
+template <int... Is>
+struct DigitTraitsHelper<0, DigitsVector<Is...>> : DigitsVector<Is...> {};
+
+template <typename T, int... Rs>
+struct DigitVectorReverseHelper;
+
+template <int IntVal, int... Is, int... Rs>
+struct DigitVectorReverseHelper<DigitsVector<IntVal, Is...>, Rs...>
+    : DigitVectorReverseHelper<DigitsVector<Is...>, IntVal, Rs...> {};
+
+template <int... Rs>
+struct DigitVectorReverseHelper<DigitsVector<>, Rs...> : DigitsVector<Rs...> {};
 
 template <int i>
 struct PrintTraits {
-  using Helper = PrintTraitsHelper<i>;
+  using Helper = typename DigitTraitsHelper<i>::Type;
+  using ReverseHelper = typename DigitVectorReverseHelper<
+      typename DigitTraitsHelper<i>::Type>::Type;
 
   void operator()() {
-    std::cout << "total: " << Helper::digits << " digits:";
-    Helper{}.Print();
+    std::cout << " total: ";
+    Helper::PrintDigitsCount();
+    std::cout << " digits: ";
+    Helper::PrintDigitsString();
+    std::cout << " reverse: ";
+    ReverseHelper::PrintDigitsString();
     std::cout << std::endl;
   }
-};
-
-template <>
-struct PrintTraits<0> {
-  void operator()() { std::cout << "total: 1  digits: 0" << std::endl; }
 };
 
 template <typename T>
