@@ -2,6 +2,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <type_traits>
 
 template <char... Is>
 struct DigitsVector {
@@ -19,8 +20,10 @@ struct PrintDigitsNameHelper<DigitsVector<Is...>, std::index_sequence<N...>> {
   constexpr const static char* NameTable[] = {
       "ones digit", "tens digit", "hundreds digit", "thousands digit",
       "ten thousands digit"};
+
+  constexpr static size_t C = sizeof...(N);
+  static_assert(C <= std::extent<decltype(NameTable)>::value, "overflow");
   static void Print() {
-    constexpr size_t C = sizeof...(N);
     ((std::cout << NameTable[C - N - 1] << " : " << (int)Is << " "), ...);
   }
 };
@@ -45,11 +48,11 @@ struct DigitVectorReverseHelper<DigitsVector<IntVal, Is...>, Rs...>
 template <char... Rs>
 struct DigitVectorReverseHelper<DigitsVector<>, Rs...> : DigitsVector<Rs...> {};
 
-template <int i>
+template <int N>
 struct PrintTraits {
-  using Helper = typename DigitTraitsHelper<i>::Type;
+  using Helper = typename DigitTraitsHelper<N>::Type;
   using ReverseHelper = typename DigitVectorReverseHelper<
-      typename DigitTraitsHelper<i>::Type>::Type;
+      typename DigitTraitsHelper<N>::Type>::Type;
   using PrintDigitsName =
       PrintDigitsNameHelper<Helper,
                             std::make_index_sequence<Helper::DigitsCount>>;
