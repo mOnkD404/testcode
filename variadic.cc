@@ -1,4 +1,5 @@
 
+#include <array>
 #include <cmath>
 #include <iostream>
 
@@ -6,7 +7,6 @@ template <char... Is>
 struct DigitsVector {
   using Type = DigitsVector<Is...>;
   enum { DigitsCount = sizeof...(Is) };
-
   static void PrintDigitsString() { ((std::cout << (int)Is << " "), ...); }
   static void PrintDigitsCount() { std::cout << DigitsCount << " "; }
 };
@@ -54,7 +54,7 @@ struct PrintTraits {
       PrintDigitsNameHelper<Helper,
                             std::make_index_sequence<Helper::DigitsCount>>;
 
-  void operator()() {
+  static void Print() {
     std::cout << " total: ";
     Helper::PrintDigitsCount();
     PrintDigitsName::Print();
@@ -68,7 +68,7 @@ struct PrintTraits {
 
 template <>
 struct PrintTraits<0> {
-  void operator()() {
+  static void Print() {
     std::cout << " total: 1 ones digit: 0 in order: 0 reverse: 0 " << std::endl;
   }
 };
@@ -78,7 +78,8 @@ struct PrintTable;
 template <size_t... N>
 struct PrintTable<std::index_sequence<N...>> {
   static void at(const int in) {
-    static const std::function<void()> table[] = {PrintTraits<N>{}...};
+    constexpr size_t C = sizeof...(N);
+    static const std::array<void (*)(), C> table{PrintTraits<N>::Print...};
     table[in]();
   }
 };
