@@ -9,25 +9,19 @@ struct DigitsVector {
 
   static void PrintDigitsString() { ((std::cout << (int)Is << " "), ...); }
   static void PrintDigitsCount() { std::cout << DigitsCount << " "; }
+};
 
+template <typename T, typename N>
+struct PrintDigitsNameHelper;
+
+template <char... Is, size_t... N>
+struct PrintDigitsNameHelper<DigitsVector<Is...>, std::index_sequence<N...>> {
   constexpr const static char* NameTable[] = {
       "ones digit", "tens digit", "hundreds digit", "thousands digit",
       "ten thousands digit"};
-  static_assert(sizeof...(Is) <= sizeof(NameTable), "e");
-
-  inline constexpr static void PrintDigitsNameHelper(size_t index, char c) {
-    std::cout << NameTable[index - 1] << " : " << (int)c << " ";
-  }
-  template <typename... Ps>
-  inline constexpr static void PrintDigitsNameHelper(size_t index,
-                                                     char c,
-                                                     Ps&&... args) {
-    std::cout << NameTable[index - 1] << " : " << (int)c << " ";
-    PrintDigitsNameHelper(index - 1, std::forward<Ps>(args)...);
-  }
-
-  static void PrintDigitsStringName() {
-    PrintDigitsNameHelper(sizeof...(Is), Is...);
+  static void Print() {
+    constexpr size_t C = sizeof...(N);
+    ((std::cout << NameTable[C - N - 1] << " : " << (int)Is << " "), ...);
   }
 };
 
@@ -56,12 +50,14 @@ struct PrintTraits {
   using Helper = typename DigitTraitsHelper<i>::Type;
   using ReverseHelper = typename DigitVectorReverseHelper<
       typename DigitTraitsHelper<i>::Type>::Type;
+  using PrintDigitsName =
+      PrintDigitsNameHelper<Helper,
+                            std::make_index_sequence<Helper::DigitsCount>>;
 
   void operator()() {
     std::cout << " total: ";
     Helper::PrintDigitsCount();
-    // std::cout << " digits: ";
-    Helper::PrintDigitsStringName();
+    PrintDigitsName::Print();
     std::cout << " in order: ";
     Helper::PrintDigitsString();
     std::cout << " reverse: ";
@@ -88,7 +84,7 @@ struct PrintTable<std::index_sequence<N...>> {
 };
 
 void PrintInt(int c) {
-  constexpr int size = 100;
+  constexpr int size = 1000;
   if (c >= size)
     return;
 
