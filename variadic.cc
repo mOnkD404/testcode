@@ -15,9 +15,7 @@ struct DigitsVector {
 };
 
 template <typename T, typename N>
-struct PrintDigitsNameHelper {
-  using Type = PrintDigitsNameHelper<T, N>;
-}
+struct PrintDigitsNameHelper;
 
 template <char... Is, size_t... N>
 struct PrintDigitsNameHelper<DigitsVector<Is...>, std::index_sequence<N...>> {
@@ -57,9 +55,9 @@ struct PrintTraits {
   using Helper = typename DigitTraitsHelper<N>::Type;
   using ReverseHelper = typename DigitVectorReverseHelper<
       typename DigitTraitsHelper<N>::Type>::Type;
-  using PrintDigitsName = typename PrintDigitsNameHelper<
-      Helper,
-      std::make_index_sequence<Helper::DigitsCount>>::Type;
+  using PrintDigitsName =
+      PrintDigitsNameHelper<Helper,
+                            std::make_index_sequence<Helper::DigitsCount>>;
 
   static void Print() {
     std::cout << " total: ";
@@ -91,7 +89,7 @@ struct PrintTable<std::index_sequence<N...>> {
 };
 
 void PrintInt(int c) {
-  constexpr int size = 100000;
+  constexpr int size = 100;
   if (c >= size)
     return;
 
