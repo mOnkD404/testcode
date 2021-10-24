@@ -8,12 +8,16 @@ template <char... Is>
 struct DigitsVector {
   using Type = DigitsVector<Is...>;
   enum { DigitsCount = sizeof...(Is) };
-  static void PrintDigitsString() { ((std::cout << (int)Is << " "), ...); }
-  static void PrintDigitsCount() { std::cout << DigitsCount << " "; }
+  inline static void PrintDigitsString() {
+    ((std::cout << (int)Is << " "), ...);
+  }
+  inline static void PrintDigitsCount() { std::cout << DigitsCount << " "; }
 };
 
 template <typename T, typename N>
-struct PrintDigitsNameHelper;
+struct PrintDigitsNameHelper {
+  using Type = PrintDigitsNameHelper<T, N>;
+}
 
 template <char... Is, size_t... N>
 struct PrintDigitsNameHelper<DigitsVector<Is...>, std::index_sequence<N...>> {
@@ -23,7 +27,7 @@ struct PrintDigitsNameHelper<DigitsVector<Is...>, std::index_sequence<N...>> {
 
   constexpr static size_t C = sizeof...(N);
   static_assert(C <= std::extent<decltype(NameTable)>::value, "overflow");
-  static void Print() {
+  inline static void Print() {
     ((std::cout << NameTable[C - N - 1] << " : " << (int)Is << " "), ...);
   }
 };
@@ -53,9 +57,9 @@ struct PrintTraits {
   using Helper = typename DigitTraitsHelper<N>::Type;
   using ReverseHelper = typename DigitVectorReverseHelper<
       typename DigitTraitsHelper<N>::Type>::Type;
-  using PrintDigitsName =
-      PrintDigitsNameHelper<Helper,
-                            std::make_index_sequence<Helper::DigitsCount>>;
+  using PrintDigitsName = typename PrintDigitsNameHelper<
+      Helper,
+      std::make_index_sequence<Helper::DigitsCount>>::Type;
 
   static void Print() {
     std::cout << " total: ";
@@ -87,7 +91,7 @@ struct PrintTable<std::index_sequence<N...>> {
 };
 
 void PrintInt(int c) {
-  constexpr int size = 1000;
+  constexpr int size = 100000;
   if (c >= size)
     return;
 
