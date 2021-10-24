@@ -80,11 +80,10 @@ template <typename T>
 struct PrintTable;
 template <size_t... N>
 struct PrintTable<std::index_sequence<N...>> {
-  static void at(const int in) {
-    constexpr size_t C = sizeof...(N);
-    static const std::array<void (*)(), C> table{PrintTraits<N>::Print...};
-    table[in]();
-  }
+  std::array<void (*)(), sizeof...(N)> table_{PrintTraits<N>::Print...};
+
+  constexpr PrintTable() {}
+  void PrintAt(int index) const { table_[index](); }
 };
 
 void PrintInt(int c) {
@@ -93,7 +92,8 @@ void PrintInt(int c) {
     return;
 
   using Table = PrintTable<std::make_index_sequence<size>>;
-  Table::at(c);
+  constexpr Table tb;
+  tb.PrintAt(c);
 }
 
 int main(int argc, char* argv[]) {
